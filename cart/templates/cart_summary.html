@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!-- Header-->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Shopping Cart</h1>
+                <p class="lead fw-normal text-white-50 mb-0">View Your Cart...</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        {% if cart_products %}
+            {% for product in cart_products %}
+                <div class="card mb-3">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img src="{{ product.product.image.url }}" class="img-fluid rounded-start" alt="Product Image">
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.product.name }}</h5>
+                                <p class="card-text">{{ product.product.description }}</p>
+                                
+                                {% if product.product.is_sale %}
+                                    <div class="d-flex justify-content-center small text-warning mb-2">
+                                        <div class="bi-star-fill"></div>
+                                        &nbsp;&nbsp;Sale!&nbsp;&nbsp;
+                                        <div class="bi-star-fill"></div>
+                                    </div>
+                                    <strike>${{ product.product.price }}</strike>
+                                    &nbsp;
+                                    ${{ product.product.sale_price }}
+                                {% else %}
+                                    ${{ product.product.price }}
+                                {% endif %}
+                                
+                                <div class="row justify-content-center">
+                                    <div class="col-md-2">Quantity:</div>
+                                    <div class="col-md-2">
+                                        <select class="form-select form-select-sm" id="select{{product.product.id}}">                                   
+                                            <option selected>{{ product.quantity }}</option>                                               
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                            <option value="3">3</option>
+                                            <option value="4">4</option>
+                                            <option value="5">5</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <br/>
+                                {% comment %} <a href="{% url 'home' %}" class="btn btn-secondary">Home</a> {% endcomment %}
+                                {% comment %} <button type="button" data-index="{{product.product.id}}" class="btn btn-secondary update-cart">Update</button> {% endcomment %}
+                                <button type="button" data-index="{{product.product.id}}" class="btn btn-danger delete-product">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            <h3>Total: ${{ totals }}</h3>
+        {% else %}
+            <p class="text-center">There's Nothing In Your Cart...</p>
+        {% endif %}
+    </div>
+
+    <script>
+    $(document).ready(function(){
+        $('.delete-product').click(function(){
+            var productId = $(this).data('index');
+            
+            $.ajax({
+                type: 'POST',
+                url: '/cart/delete/' + productId + '/',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Reload lại trang sau khi xóa sản phẩm thành công
+                        location.reload();
+                    } else {
+                        alert('Error deleting product from cart');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error deleting product from cart');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
